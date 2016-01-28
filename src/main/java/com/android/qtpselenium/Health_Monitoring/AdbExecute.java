@@ -11,7 +11,7 @@ public class AdbExecute {
 	public static BufferedReader executeAdbCommand(String cmd) throws IOException {
 		BufferedReader buf = null;
 		try {
-			//System.out.println("Executing command :" + cmd);
+			System.out.println("Executing command :" + cmd);
 			Runtime run = Runtime.getRuntime();
 			Process pr = null;
 			if (OS.isFamilyMac()) {
@@ -22,6 +22,7 @@ public class AdbExecute {
 			}
 			pr.waitFor();
 			buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			//System.out.println("buf"+buf.readLine());
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();

@@ -4,7 +4,7 @@
 <suite name="Suite1">
   <test name="test1">
 	<parameter name="sender_device_id" value="4df7e18f440c30c9"/>
-	<parameter name="receiver_device_id" value="4d00aebfb8b9900f"/>
+	<parameter name="receiver_device_id" value="BH9064DB17"/>
 	<parameter name="box_wifi" value="JioSwitch_C406"/>
 	<parameter name="password" value="12345678"/>
 	<parameter name="url" value="https://box.switchnwalk.com:8443"/>
