@@ -134,18 +134,18 @@ public class AdbTests implements IRetryAnalyzer {
 				String[] commands = { "/bin/sh", "-c", str };
 				Process pr = Runtime.getRuntime().exec(commands);
 				BufferedReader err = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
+				Thread.sleep(20000);
 				Assert.assertNull(err.readLine());
 				System.out.println("connect_box test passed");
-				Thread.sleep(20000);
 			}
 
 			else if (OS.isFamilyWindows()) {
 				String str = "netsh wlan connect name= " + box_wifi;
 				Process pr = Runtime.getRuntime().exec(str);
 				BufferedReader err = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
+				Thread.sleep(20000);
 				Assert.assertNull(err.readLine());
 				System.out.println("connect_box test passed");
-				Thread.sleep(20000);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -163,18 +163,15 @@ public class AdbTests implements IRetryAnalyzer {
 			String result = "";
 			String str = "adb connect 192.168.43.1";
 			BufferedReader buf = AdbExecute.executeAdbCommand(str);
-			while ((line = buf.readLine()) != null) {
-				// System.out.println("adb out-->" + line);
-				result = line;
+			result = buf.readLine();
+			if (result.equals("already connected to 192.168.43.1:5555")) {
+				result = "connected to 192.168.43.1:5555";
 			}
-			Assert.assertNotSame("unable to connect to 192.168.43.1:5555: Network is unreachable", result);
+			Assert.assertEquals("connected to 192.168.43.1:5555", result);
 
 			str = "adb -s 192.168.43.1:5555 remount";
 			buf = AdbExecute.executeAdbCommand(str);
-			while ((line = buf.readLine()) != null) {
-				// System.out.println("adb out-->" + line);
-				result = line;
-			}
+			result = buf.readLine();
 			Assert.assertEquals("remount succeeded", result);
 
 			str = "adb -s 192.168.43.1:5555 shell am startservice -a com.switchnwalk.SYNC -n com.reliance.jio.snwbox/.JioSyncService";
@@ -198,18 +195,15 @@ public class AdbTests implements IRetryAnalyzer {
 			String result = "";
 			String str = "adb connect 192.168.43.1";
 			BufferedReader buf = AdbExecute.executeAdbCommand(str);
-			while ((line = buf.readLine()) != null) {
-				// System.out.println("adb out-->" + line);
-				result = line;
+			result = buf.readLine();
+			if (result.equals("already connected to 192.168.43.1:5555")) {
+				result = "connected to 192.168.43.1:5555";
 			}
-			Assert.assertNotSame("unable to connect to 192.168.43.1:5555: Network is unreachable", result);
+			Assert.assertEquals("connected to 192.168.43.1:5555", result);
 
 			str = "adb -s 192.168.43.1:5555 remount";
 			buf = AdbExecute.executeAdbCommand(str);
-			while ((line = buf.readLine()) != null) {
-				// System.out.println("adb out-->" + line);
-				result = line;
-			}
+			result = buf.readLine();
 			Assert.assertEquals("remount succeeded", result);
 
 			String final_uri = uri + "&brand=" + brand;
@@ -229,7 +223,7 @@ public class AdbTests implements IRetryAnalyzer {
 				appDetailsArray.add(jsonarray.getJSONObject(i).getString("filename"));
 				appDetails.put(jsonarray.getJSONObject(i).getString("appName"), appDetailsArray);
 			}
-
+			// Is any assertions required?
 			System.out.println("campaign test passed. Count of apps are" + countOfApps);
 
 		} catch (IOException e) {
@@ -248,17 +242,17 @@ public class AdbTests implements IRetryAnalyzer {
 					+ " shell am start -n com.reliance.automationhelper/.MainActivity -e automation wifi -e state true";
 			BufferedReader sender_buf = AdbExecute.executeAdbCommand(sender_str);
 			result = sender_buf.readLine();
-			// Assert.assertEquals("Starting: Intent
-			// {cmp=com.reliance.automationhelper/.MainActivity (has extras) }",
-			// result);
+			System.out.println(result);
+			Assert.assertEquals("Starting: Intent { cmp=com.reliance.automationhelper/.MainActivity (has extras) }",
+					result);
 
 			sender_str = "adb -s " + sender_device_id
 					+ " shell am start -n com.reliance.automationhelper/.MainActivity -e automation wifiConnect -e state true -e ssid JioSwitch_C406 -e pwd 12345678 -e nwtype WPA2";
 			sender_buf = AdbExecute.executeAdbCommand(sender_str);
 			result = sender_buf.readLine();
-			// Assert.assertEquals("Starting: Intent
-			// {cmp=com.reliance.automationhelper/.MainActivity (has extras) }",
-			// result);
+			System.out.println(result);
+			Assert.assertEquals("Starting: Intent { cmp=com.reliance.automationhelper/.MainActivity (has extras) }",
+					result);
 
 			String receiver_str = "adb -s " + receiver_device_id
 					+ " shell am start -n com.reliance.automationhelper/.MainActivity -e automation wifi -e state true";
@@ -294,7 +288,9 @@ public class AdbTests implements IRetryAnalyzer {
 		try {
 			boolean result;
 			result = downloadApp.download(sender_device_id);
+			Thread.sleep(30000);
 			Assert.assertEquals(true, result);
+			System.out.println("download app on sender phone test passed");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -307,7 +303,9 @@ public class AdbTests implements IRetryAnalyzer {
 		try {
 			boolean result;
 			result = downloadApp.download(receiver_device_id);
+			Thread.sleep(30000);
 			Assert.assertEquals(true, result);
+			System.out.println("download app on receiver phone test passed");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -318,28 +316,25 @@ public class AdbTests implements IRetryAnalyzer {
 	@Test(retryAnalyzer = AdbTests.class, dependsOnMethods = { "download_app_on_sender_phone" })
 	public void install_app_sender_phone(String sender_device_id) {
 		try {
-			Thread.sleep(30000);
 			String line = "";
 			String result = "";
 			String sender_str = "adb -s " + sender_device_id
 					+ " pull /sdcard/download/JioSwitch_196.apk /Users/rakshita/Documents";
 			BufferedReader sender_buf = AdbExecute.executeAdbCommand(sender_str);
+			result=sender_buf.readLine();
+			Assert.assertNull(result);
 			System.out.println("apk pulled");
-			Assert.assertNull(sender_buf.readLine());
 
-			sender_str = "adb -s " + sender_device_id + "install /Users/rakshita/Documents/JioSwitch_196.apk";
+			sender_str = "adb -s " + sender_device_id + " install /Users/rakshita/Documents/JioSwitch_196.apk";
 			sender_buf = AdbExecute.executeAdbCommand(sender_str);
 			while ((line = sender_buf.readLine()) != null) {
 				// System.out.println("adb out-->" +line);
 				result = line;
 			}
-			System.out.println("apk installed");
 			Assert.assertEquals("Success", result);
+			System.out.println("apk installed");
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -349,19 +344,18 @@ public class AdbTests implements IRetryAnalyzer {
 	@Test(retryAnalyzer = AdbTests.class, dependsOnMethods = { "download_app_on_receiver_phone" })
 	public void install_app_receiver_phone(String receiver_device_id) {
 		try {
-			Thread.sleep(30000);
 			String line = "";
 			String result = "";
-			String sender_str = "adb -s " + receiver_device_id
+			String receiver_str = "adb -s " + receiver_device_id
 					+ " pull /sdcard/download/JioSwitch_196.apk /Users/rakshita/Documents";
-			BufferedReader sender_buf = AdbExecute.executeAdbCommand(sender_str);
-			System.out.println(sender_buf.readLine());
-			Assert.assertNotNull(sender_buf.readLine());
+			BufferedReader receiver_buf = AdbExecute.executeAdbCommand(receiver_str);
+			result=receiver_buf.readLine();
+			Assert.assertNotNull(result);
 			System.out.println("apk pulled");
 
-			sender_str = "adb -s " + receiver_device_id + "install /Users/rakshita/Documents/JioSwitch_196.apk";
-			sender_buf = AdbExecute.executeAdbCommand(sender_str);
-			while ((line = sender_buf.readLine()) != null) {
+			receiver_str = "adb -s " + receiver_device_id + " install /Users/rakshita/Documents/JioSwitch_196.apk";
+			receiver_buf = AdbExecute.executeAdbCommand(receiver_str);
+			while ((line = receiver_buf.readLine()) != null) {
 				// System.out.println("adb out-->" + line);
 				result = line;
 			}
@@ -369,9 +363,6 @@ public class AdbTests implements IRetryAnalyzer {
 			System.out.println("apk installed");
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
